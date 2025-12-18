@@ -1,43 +1,68 @@
-<?php 
+<?php
+
 namespace App\Http\Methods\V1;
 
-use App\Http\Methods\BaseMethod;
 use App\Models\Permission;
+use Illuminate\Database\Eloquent\Collection;
 
-class PermissionMethod extends BaseMethod
+class PermissionMethod
 {
-	public function __construct(Permission $permission)
-	{
-		$this->model = $permission;
-	}
+    public function __construct(
+        protected Permission $model
+    ) {}
 
-	public function index()
-	{
-		return $this->model->get();
-	}
+    /**
+     * Liste des permissions
+     */
+    public function index(): Collection
+    {
+        return $this->model->newQuery()->get();
+    }
 
-	public function find($id)
-	{
-		return $this->model->findOrFail($id);
-	}
+    /**
+     * Récupère une permission par ID
+     */
+    public function find(int $id): ?Permission
+    {
+        return $this->model->newQuery()->find($id);
+    }
 
-	public function store($inputs)
-	{
-	    $permission = new $this->model;
-	    $permission->fill($inputs);
-	    $permission->save();
-	}
+    /**
+     * Crée une permission
+     */
+    public function store(array $inputs): Permission
+    {
+        return $this->model->newQuery()->create($inputs);
+    }
 
-	public function update($inputs, $id)
-	{
-		$permission = $this->model->find($id);
-		$permission->fill($inputs);
-		$permission->save();
-	}
-    
-	public function destroy($id)
-	{
-		$permission = $this->model->find($id);
-		$permission->delete();
-	}
+    /**
+     * Met à jour une permission
+     */
+    public function update(array $inputs, int $id): ?Permission
+    {
+        $permission = $this->find($id);
+
+        if (! $permission) {
+            return null;
+        }
+
+        $permission->fill($inputs);
+        $permission->save();
+
+        return $permission;
+    }
+
+    /**
+     * Supprime une permission
+     */
+    public function destroy(int $id): bool
+    {
+        $permission = $this->find($id);
+
+        if (! $permission) {
+            return false;
+        }
+
+        return (bool) $permission->delete();
+    }
 }

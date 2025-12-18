@@ -1,58 +1,104 @@
 <?php
-   
+
 namespace App\Http\Controllers\V1;
 
-use Illuminate\Http\Request;
-use App\Http\Controllers\V1\BaseController as BaseController;
+use App\Http\Controllers\RestController;
 use App\Http\Methods\V1\UserMethod;
 use App\Http\Resources\V1\UserResource;
 use App\Http\Requests\V1\User\CreateRequest;
 use App\Http\Requests\V1\User\UpdateRequest;
-   
-class UserController extends BaseController
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+class UserController extends RestController
 {
-  protected $users;
+    public function __construct(
+        protected UserMethod $users
+    ) {}
 
-  public function __construct(UserMethod $users)
-  {
-    $this->users = $users;
-  }
+    public function index()
+    {
+        return UserResource::collection(
+            $this->users->index()
+        );
+    }
 
-  public function index()
-  {
-    return UserResource::collection($this->users->index());
-  }
+    public function show(int $id)
+    {
+        $user = $this->users->find($id);
+        if (! $user) {
+            return $this->error(
+                'User not found',
+                Response::HTTP_NOT_FOUND
+            );
+        }
+        return new UserResource($user);
+    }
+    /**
+     * Utilisateur courant (authentifié)
+     */
+    public function me()
+    {
+        $user = $this->users->me();
+        if (! $user) {
+            return $this->error(
+                'Unauthenticated',
+                Response::HTTP_UNAUTHORIZED
+            );
+        }
+        return new UserResource($user);
+    }
 
-  public function show($id)
-  {
-    return new UserResource($this->users->find($id));
-  }
+    public function store(CreateRequest $request)
+    {
+        $user = $this->users->store(
+            $request->validated()
+        );
+        return $this->created(
+            new UserResource($user)
+        );
+    }
 
-  public function me()
-  {
-    return $this->users->me();
-  }
+    public function update(UpdateRequest $request, int $id)
+    {
+        $user = $this->users->update(
+            $request->validated(),
+            $id
+        );
+        if (! $user) {
+            return $this->error(
+                'User not found',
+                Response::HTTP_NOT_FOUND
+            );
+        }
+        return $this->ok(
+            new UserResource($user)
+        );
+    }
 
-  public function store(CreateRequest $request)
-  {
-    $this->users->store($request->all());
-    return $this->handleResponse('success', 'User created');
-  }
-
-  public function update(UpdateRequest $request, $id)
-  {
-    $this->users->update($request->all(), $id);
-    return $this->handleResponse('success', 'User modified');
-  }
-
-  public function destroy($id)
-  {
-    $this->users->destroy($id);
-    return $this->handleResponse('success', 'User deleted');
-  }
-  
-  public function search(Request $request)
-  {
-    return $this->users->search($request['text'],$request['auth']);
-  }
+    public function destroy(int $id)
+    {
+        if (! $this->users->destroy($id)) {
+            return $this->error(
+                'User not found',
+                Response::HTTP_NOT_FOUND
+            );
+        }
+        return $this->noContent();
+    }
+    /**
+     * Recherche utilisateurs
+     */
+    public function search(Request $request)
+    {
+        $request->validate([
+            'text' => ['required', 'string'],
+            'auth' => ['nullable', 'boolean'],
+        ]);
+        $users = $this->users->search(
+            $request->string('text'),
+            $request->boolean('auth')
+        );
+        return UserResource::collection($users);
+    }
 }

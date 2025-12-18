@@ -1,48 +1,99 @@
 <?php
-   
+
 namespace App\Http\Controllers\V1;
 
-use Illuminate\Http\Request;
 use App\Http\Controllers\RestController;
 use App\Http\Methods\V1\PermissionMethod;
-use App\Http\Resources\V1\PermissionResource;
 use App\Http\Requests\V1\Permission\CreateRequest;
 use App\Http\Requests\V1\Permission\UpdateRequest;
+use App\Http\Resources\V1\PermissionResource;
+use Symfony\Component\HttpFoundation\Response;
 
 class PermissionController extends RestController
 {
-    protected $permissions;
+    public function __construct(
+        protected PermissionMethod $permissions
+    ) {}
 
-    public function __construct(PermissionMethod $permissions)
-    {
-      $this->permissions = $permissions;
-    }
-
+    /**
+     * GET /permissions
+     */
     public function index()
     {
-      return PermissionResource::collection($this->permissions->index());
+        return PermissionResource::collection(
+            $this->permissions->index()
+        );
     }
 
-    public function show($id)
+    /**
+     * GET /permissions/{id}
+     */
+    public function show(int $id)
     {
-      return new PermissionResource($this->permissions->find($id));
+        $permission = $this->permissions->find($id);
+
+        if (! $permission) {
+            return $this->error(
+                'Permission not found',
+                Response::HTTP_NOT_FOUND
+            );
+        }
+
+        return $this->ok(
+            new PermissionResource($permission)
+        );
     }
 
+    /**
+     * POST /permissions
+     */
     public function store(CreateRequest $request)
     {
-      $this->permissions->store($request->all());
-      return $this->handleResponse('success', 'Permission created');
+        $permission = $this->permissions->store(
+            $request->validated()
+        );
+
+        return $this->created(
+            new PermissionResource($permission)
+        );
     }
 
-    public function update(UpdateRequest $request, $id)
+    /**
+     * PUT /permissions/{id}
+     */
+    public function update(UpdateRequest $request, int $id)
     {
-      $this->permissions->update($request->all(), $id);
-      return $this->handleResponse('success', 'Permission modified');
+        $permission = $this->permissions->update(
+            $request->validated(),
+            $id
+        );
+
+        if (! $permission) {
+            return $this->error(
+                'Permission not found',
+                Response::HTTP_NOT_FOUND
+            );
+        }
+
+        return $this->ok(
+            new PermissionResource($permission)
+        );
     }
 
-    public function destroy($id)
+    /**
+     * DELETE /permissions/{id}
+     */
+    public function destroy(int $id)
     {
-      $this->permissions->destroy($id);
-      return $this->handleResponse('success', 'Permission deleted');
+        $deleted = $this->permissions->destroy($id);
+
+        if (! $deleted) {
+            return $this->error(
+                'Permission not found',
+                Response::HTTP_NOT_FOUND
+            );
+        }
+
+        return $this->noContent();
     }
 }
