@@ -1,0 +1,30 @@
+services:
+
+  postgres:
+    build:
+      context: ./docker/dev/postgres
+    ports:
+      - 5432:5432
+    networks:
+      - back
+    environment:
+      POSTGRES_USER: 'postgres'
+      POSTGRES_PASSWORD: 'postgres'
+      POSTGRES_DB: 'chronoterr'
+    volumes:
+      - ./db/postgres:/var/lib/postgresql/data/pgdata
+
+  api:
+    build:
+      context: ./docker/dev/api
+    ports:
+      - 80:80
+    networks:
+      - back
+    depends_on:
+      - postgres
+    volumes:
+      - ./api:/var/www/html
+
+networks:
+  back:

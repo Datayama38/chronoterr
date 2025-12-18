@@ -1,0 +1,6 @@
+.vscode
+front/node_modules
+db/*
+**/.env
+api/storage/*.key
+api/vendor
