@@ -4,34 +4,23 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateThemesTable extends Migration
+return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     *
-     * @return void
-     */
-    public function up()
+    public function up(): void
     {
       Schema::create('themes', function (Blueprint $table) {
-        $table->bigIncrements('id')->index();
+        $table->id();
         $table->string('name_fr')->unique();
         $table->string('name_en');
         $table->integer('ranking');
         $table->string('color');
-        $table->unsignedInteger('thematic_id')->index();
-        $table->foreign('thematic_id')->references('id')->on('thematics');
+        $table->foreignId('thematic_id')->constrained('thematics')->onDelete('cascade');
         $table->timestamps();
       });
     }
 
-    /**
-     * Reverse the migrations.
-     *
-     * @return void
-     */
-    public function down()
+    public function down(): void
     {
       Schema::dropIfExists('themes');
     }
-}
+};

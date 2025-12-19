@@ -6,29 +6,18 @@ use Illuminate\Database\Migrations\Migration;
 
 class CreateEventImageTable extends Migration
 {
-    /**
-     * Run the migrations.
-     *
-     * @return void
-     */
-    public function up()
+
+    public function up(): void
     {
       Schema::create('event_image', function (Blueprint $table) {
-        $table->bigIncrements('id')->index();
-        $table->unsignedInteger('event_id')->index();
-        $table->foreign('event_id')->references('id')->on('events')->onDelete('cascade');
-        $table->unsignedInteger('image_id')->index();
-        $table->foreign('image_id')->references('id')->on('images')->onDelete('cascade');
+          $table->foreignId('event_id')->constrained('events')->onDelete('cascade');
+          $table->foreignId('image_id')->constrained('images')->onDelete('cascade');
+          $table->primary(['event_id', 'image_id']); // clé primaire composée
       });
     }
 
-    /**
-     * Reverse the migrations.
-     *
-     * @return void
-     */
-    public function down()
+    public function down(): void
     {
       Schema::dropIfExists('event_image');
     }
-}
+};

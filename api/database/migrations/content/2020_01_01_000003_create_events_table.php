@@ -4,17 +4,13 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateEventsTable extends Migration
+return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     *
-     * @return void
-     */
-    public function up()
+
+    public function up(): void
     {
       Schema::create('events', function (Blueprint $table) {
-        $table->bigIncrements('id')->index();
+        $table->id();
         $table->string('title_fr')->unique();
         $table->string('title_en')->nullable();
         $table->string('creator');
@@ -28,26 +24,19 @@ class CreateEventsTable extends Migration
         $table->text('description_en')->nullable();
         $table->text('bibliography_fr')->nullable();
         $table->text('bibliography_en')->nullable();
-        $table->float('km_up',4,2)->nullable();
-        $table->float('km_down',4,2)->nullable();
-        $table->unsignedInteger('theme_id')->index();
-        $table->foreign('theme_id')->references('id')->on('themes')->onDelete('cascade');
-        $table->unsignedInteger('user_id');
-        $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-        $table->multiPoint('points')->nullable()->spatialIndex();
-        $table->multiLineString('lines')->nullable()->spatialIndex();
-        $table->multiPolygon('polygons')->nullable()->spatialIndex();
+        $table->float('km_up',6,2)->nullable();
+        $table->float('km_down',6,2)->nullable();
+        $table->foreignId('theme_id')->constrained('themes')->onDelete('cascade');
+        $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+        $table->geometry('points', subtype: 'multiPoint', srid: 4326)->nullable()->spatialIndex();
+        $table->geometry('lines', subtype: 'multiLineString', srid: 4326)->nullable()->spatialIndex();
+        $table->geometry('polygons', subtype: 'multiPolygon', srid: 4326)->nullable()->spatialIndex();
         $table->timestamps();
       });
     }
 
-    /**
-     * Reverse the migrations.
-     *
-     * @return void
-     */
-    public function down()
+    public function down(): void
     {
       Schema::dropIfExists('events');
     }
-}
+};

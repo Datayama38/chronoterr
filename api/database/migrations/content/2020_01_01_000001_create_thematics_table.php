@@ -4,17 +4,13 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateThematicsTable extends Migration
+return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     *
-     * @return void
-     */
-    public function up()
+
+    public function up(): void
     {
       Schema::create('thematics', function (Blueprint $table) {
-        $table->bigIncrements('id')->index();
+        $table->id();
         $table->string('name_fr')->unique();
         $table->string('name_en');
         $table->integer('ranking');
@@ -22,13 +18,8 @@ class CreateThematicsTable extends Migration
       });
     }
 
-    /**
-     * Reverse the migrations.
-     *
-     * @return void
-     */
     public function down()
     {
       Schema::dropIfExists('thematics');
     }
-}
+};
